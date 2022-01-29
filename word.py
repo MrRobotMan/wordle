@@ -104,7 +104,13 @@ class Word:
         self._available_letters[letter] = []
 
     def _process_words(self) -> None:
-        unavailable = [let for let, pos in self._available_letters.items() if not pos]
+        """Removes words that aren't possible"""
         for word in self._available_words.copy():
-            if any(letter in unavailable for letter in word):
-                self._available_words.remove(word)
+            try:
+                for idx, letter in enumerate(word):
+                    if idx not in self._available_letters[letter]:
+                        self._available_words.remove(word)
+                        break
+            except KeyError:
+                # Skip words that have already been removed
+                continue

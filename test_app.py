@@ -2,11 +2,15 @@ import unittest
 from unittest.mock import Mock, patch
 
 import app
-from word import Color
+from word import Color, Word
 
 
 class TestApp(unittest.TestCase):
     """Test class fro the main app."""
+
+    with open("words.txt", "r") as f:
+        word_list = set(line.strip() for line in f)
+    wordle = Word(word_list, 5)
 
     @patch(
         "builtins.input", side_effect=["liner", "1", "", "b", "Y", "4", "g", "green"]
@@ -35,6 +39,25 @@ class TestApp(unittest.TestCase):
             ],
             guess,
         )
+
+    @patch("builtins.print")
+    @patch("builtins.input", side_effect=["", "h", "Y"])
+    def test_view_available_words(self, mock_input: Mock, mock_output: Mock) -> None:
+        self.wordle.guess(
+            [
+                ("R", Color.GREEN),
+                ("A", Color.BLACK),
+                ("B", Color.BLACK),
+                ("I", Color.BLACK),
+                ("T", Color.GREEN),
+            ]
+        )
+        app.view_available_words(self.wordle)
+        mock_input.assert_any_call(
+            "There are 3 possible words remaining. Would you like to view them? [y/N]: "
+        )
+        self.assertEqual(3, mock_input.call_count)
+        mock_output.assert_called_once_with({"ROOST", "RECUT", "RESET"})
 
 
 if __name__ == "__main__":
