@@ -1,6 +1,7 @@
+import collections
 import enum
 import string
-from typing import Any, List, Sequence, Set, Tuple
+from typing import Any, List, Mapping, Optional, Set, Tuple
 
 LETTERS = set(letter for letter in string.ascii_uppercase)
 
@@ -41,14 +42,15 @@ class Word:
 
     def guess(
         self,
-        guess: Sequence[Tuple[str, Color]],
+        guess: List[Tuple[str, Color]],
     ) -> None:
-        for idx, (letter, color) in enumerate(guess):
+        clean_guess = self._check_for_doubles(guess)
+        for idx, (letter, color) in enumerate(clean_guess):
             if color is Color.YELLOW:
                 self._add_possible_letter(letter, idx)
             elif color is Color.GREEN:
                 self._add_known_letter(letter, idx)
-            else:
+            elif color is Color.BLACK:
                 self._unavailable_letter(letter)
         self._process_words()
 
@@ -83,7 +85,8 @@ class Word:
             raise BlackLetterError(letter, "YELLOW")
         self._remove_position(letter_list, position)
         for idx, let in enumerate(self._known_letters):
-            if let:
+            if let and let != letter:
+                # Letter must be known and not matching the yellow letter.
                 self._remove_position(letter_list, idx)
 
     def _add_known_letter(self, letter: str, position: int) -> None:
@@ -91,9 +94,6 @@ class Word:
         if not self._available_letters[letter]:
             raise BlackLetterError(letter, "GREEN")
         self._known_letters[position] = letter
-        self._available_letters[letter] = [
-            pos for pos, let in enumerate(self._known_letters) if let == letter
-        ]
         for unknown, unknown_postions in self._available_letters.items():
             if unknown == letter:
                 continue
@@ -114,3 +114,22 @@ class Word:
             except KeyError:
                 # Skip words that have already been removed
                 continue
+
+    def _check_for_doubles(self, guess: List[Tuple[str, Color]]) -> List[Tuple[str, Optional[Color]]]:
+        """Checks for double letters where one is green. If so. the black letter should be ignored."""
+        cleaned_guess: List[Tuple[str, Optional[Color]]] = [item for item in guess]
+        letter_positions: Mapping[str, List[Tuple[int, Color]]] = collections.defaultdict(list)
+        for idx,(letter, color) in enumerate(guess):
+            letter_positions[letter[0]].append((idx, color))
+        for letter, value in letter_positions.items():
+            if len(value) == 1:
+                # Skip if there's no duplicate
+                continue
+            if not any(color[1] == Color.BLACK for color in value):
+                # Skip if the duplicates are all yellow and green.
+                continue
+            for (idx, color) in value:
+                if color is Color.BLACK:
+                    cleaned_guess[idx] = (letter, None)
+                    self._remove_position(self._available_letters[letter], idx)
+        return cleaned_guess

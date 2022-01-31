@@ -25,11 +25,11 @@ class TestWordle(unittest.TestCase):
         )
         self.assertNotIn(guess, self.wordle.available_words)
         self.assertListEqual([], self.wordle._available_letters["L"])  # type: ignore
-        self.assertListEqual([4], self.wordle._available_letters["R"])  # type: ignore
+        self.assertIn(4, self.wordle._available_letters["R"])  # type: ignore
         self.assertListEqual([0, 1, 2], self.wordle._available_letters["E"])  # type: ignore
         self.assertEqual("____R", self.wordle.known_letters)
 
-    def test_double_letter(self) -> None:
+    def test_double_green_letter(self) -> None:
         self.wordle.guess(
             [
                 ("R", word.Color.BLACK),
@@ -39,8 +39,22 @@ class TestWordle(unittest.TestCase):
                 ("T", word.Color.BLACK),
             ]
         )
-        self.assertListEqual([1, 3], self.wordle._available_letters["O"])  # type: ignore
+        self.assertIn(1, self.wordle._available_letters["O"])  # type: ignore
+        self.assertIn(3, self.wordle._available_letters["O"])  # type: ignore
         self.assertEqual("_O_O_", self.wordle.known_letters)
+
+    def test_green_black_letter(self) -> None:
+        self.wordle.guess(
+            [
+                ("L", word.Color.GREEN),
+                ("I", word.Color.GREEN),
+                ("M", word.Color.BLACK),
+                ("I", word.Color.BLACK),
+                ("T", word.Color.GREEN),
+            ]
+        )
+        self.assertEqual("LI__T", self.wordle.known_letters)
+        self.assertEqual(1, len(self.wordle.available_words))
 
     def test_change_black_to_green_or_yellow(self) -> None:
         """Tests that an exception is raised if a letter changes from black to green or yellow."""
