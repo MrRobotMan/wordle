@@ -48,7 +48,8 @@ def guess_loop(input_text: str, wordle: word.Word) -> None:
     while len(guess) != WORD_LENGTH:
         guess = get_guess(f"Guess must be {WORD_LENGTH} characters. Try again: ")
     wordle.guess(guess)
-    view_available_words(wordle)
+    if "_" in wordle.known_letters:
+        view_available_words(wordle)
     print(wordle.known_letters)
 
 
