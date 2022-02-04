@@ -39,6 +39,7 @@ class Word:
             letter: [idx for idx in range(self._word_length)] for letter in LETTERS
         }
         self._known_letters = ["" for _ in range(self._word_length)]
+        self._required_letters: Set[str] = set()
 
     def guess(
         self,
@@ -80,6 +81,7 @@ class Word:
 
     def _add_possible_letter(self, letter: str, position: int) -> None:
         """Remove the available index in the position of the yellow letter"""
+        self._required_letters.add(letter)
         letter_list = self._available_letters[letter]
         if not letter_list:
             raise BlackLetterError(letter, "YELLOW")
@@ -91,6 +93,7 @@ class Word:
 
     def _add_known_letter(self, letter: str, position: int) -> None:
         """Sets the known letters' position and the available letters list to those positions"""
+        self._required_letters.add(letter)
         if not self._available_letters[letter]:
             raise BlackLetterError(letter, "GREEN")
         self._known_letters[position] = letter
@@ -106,20 +109,29 @@ class Word:
     def _process_words(self) -> None:
         """Removes words that aren't possible"""
         for word in self._available_words.copy():
-            try:
-                for idx, letter in enumerate(word):
+            # Remove word if the required letters aren't in it.
+            if not set(word).issuperset(self._required_letters):
+                self.available_words.remove(word)
+                continue
+            # Remove words if letter is black.
+            for idx, letter in enumerate(word):
+                try:
                     if idx not in self._available_letters[letter]:
                         self._available_words.remove(word)
                         break
-            except KeyError:
-                # Skip words that have already been removed
-                continue
+                except KeyError:
+                    # Skip words that have already been removed
+                    continue
 
-    def _check_for_doubles(self, guess: List[Tuple[str, Color]]) -> List[Tuple[str, Optional[Color]]]:
+    def _check_for_doubles(
+        self, guess: List[Tuple[str, Color]]
+    ) -> List[Tuple[str, Optional[Color]]]:
         """Checks for double letters where one is green. If so. the black letter should be ignored."""
         cleaned_guess: List[Tuple[str, Optional[Color]]] = [item for item in guess]
-        letter_positions: Mapping[str, List[Tuple[int, Color]]] = collections.defaultdict(list)
-        for idx,(letter, color) in enumerate(guess):
+        letter_positions: Mapping[
+            str, List[Tuple[int, Color]]
+        ] = collections.defaultdict(list)
+        for idx, (letter, color) in enumerate(guess):
             letter_positions[letter[0]].append((idx, color))
         for letter, value in letter_positions.items():
             if len(value) == 1:

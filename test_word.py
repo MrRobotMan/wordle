@@ -1,13 +1,14 @@
 import unittest
 
+import app
 import word
 
 
 class TestWordle(unittest.TestCase):
+    word_list = app.get_words(app.WORDS_FILE)
+
     def setUp(self) -> None:
-        with open("words.txt", "r") as f:
-            word_list = set(line.strip() for line in f)
-        self.wordle = word.Word(word_list, 5)
+        self.wordle = word.Word(self.word_list, 5)
 
     def test_class_creation(self) -> None:
         self.assertIn("LINER", self.wordle.available_words)
