@@ -5,10 +5,9 @@ import word
 
 
 class TestWordle(unittest.TestCase):
-    word_list = app.get_words(app.WORDS_FILE)
-
     def setUp(self) -> None:
-        self.wordle = word.Word(self.word_list, 5)
+        words = app.get_words(app.WORDS_FILE)
+        self.wordle = word.Word(words, 5)
 
     def test_class_creation(self) -> None:
         self.assertIn("LINER", self.wordle.available_words)
