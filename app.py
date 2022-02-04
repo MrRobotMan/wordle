@@ -4,20 +4,29 @@ import re
 from pathlib import Path
 from typing import List, Set, Tuple
 
-import colorama
-
-colorama.init()
-
 import word
 
-COLOR_MAP = {
-    "1": (word.Color.BLACK, colorama.Fore.WHITE),
-    "b": (word.Color.BLACK, colorama.Fore.WHITE),
-    "2": (word.Color.YELLOW, colorama.Fore.YELLOW),
-    "y": (word.Color.YELLOW, colorama.Fore.YELLOW),
-    "3": (word.Color.GREEN, colorama.Fore.GREEN),
-    "g": (word.Color.GREEN, colorama.Fore.GREEN),
-}
+try:
+    import colorama
+    colorama.init()
+    COLOR_MAP = {
+        "1": (word.Color.BLACK, colorama.Fore.WHITE),
+        "b": (word.Color.BLACK, colorama.Fore.WHITE),
+        "2": (word.Color.YELLOW, colorama.Fore.YELLOW),
+        "y": (word.Color.YELLOW, colorama.Fore.YELLOW),
+        "3": (word.Color.GREEN, colorama.Fore.GREEN),
+        "g": (word.Color.GREEN, colorama.Fore.GREEN),
+    }
+except ImportError:
+    COLOR_MAP = {
+        "1": (word.Color.BLACK, ""),
+        "b": (word.Color.BLACK, ""),
+        "2": (word.Color.YELLOW, ""),
+        "y": (word.Color.YELLOW, ""),
+        "3": (word.Color.GREEN, ""),
+        "g": (word.Color.GREEN, ""),
+    }
+
 MAX_GUESSES = 6
 WORD_LENGTH = 5
 WORDS_FILE = Path("Wordle - A daily word game_files") / "main.e65ce0a5.js.download"
